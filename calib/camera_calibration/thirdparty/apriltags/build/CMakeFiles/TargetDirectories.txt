@@ -1,0 +1,3 @@
+/media/mu/jzhao/camera_calibration_homework/thirdparty/apriltags/build/CMakeFiles/apriltags.dir
+/media/mu/jzhao/camera_calibration_homework/thirdparty/apriltags/build/CMakeFiles/edit_cache.dir
+/media/mu/jzhao/camera_calibration_homework/thirdparty/apriltags/build/CMakeFiles/rebuild_cache.dir
