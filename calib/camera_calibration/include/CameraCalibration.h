@@ -18,7 +18,7 @@ public:
 
     void addChessboardData(const std::vector<cv::Point2f>& corners);
 
-    void addApriltagDate(const std::vector<cv::Point2f>& corners,
+    void addApriltagData(const std::vector<cv::Point2f>& corners,
                         const std::vector<cv::Point3f>& tagpoints);
 
     bool calibrate(void);

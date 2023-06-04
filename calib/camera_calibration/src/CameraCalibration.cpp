@@ -36,7 +36,7 @@ CameraCalibration::CameraCalibration(const cv::Size& imageSize,
  : m_boardSize(boardSize)
  , m_squareSize(squareSize)
  , m_verbose(false)
-{
+{   
     PinholeCameraPtr camera(new PinholeCamera);
     PinholeCamera::Parameters params = camera->getParameters();
     params.imageWidth() = imageSize.width;
@@ -65,21 +65,21 @@ CameraCalibration::addChessboardData(const std::vector<cv::Point2f>& corners)
     // 根据棋盘格标定板的属性，生成标定板上边3D点在三维空间中的位置
 
     ////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
+    for (int i = 0; i < m_boardSize.height; i++){
+        for (int j = 0; j < m_boardSize.width; j++){
+            float x = i * m_squareSize;
+            float y = j * m_squareSize;
+            cv::Point3f point3d(x, y, 0.0f);
+            scenePointsInView.push_back(point3d);
+        }
+    }
     ////////////////////////////////////////////////////////////////////
 
     m_scenePoints.push_back(scenePointsInView);
 }
 
 void 
-CameraCalibration::addApriltagDate(const std::vector<cv::Point2f>& corners,
+CameraCalibration::addApriltagData(const std::vector<cv::Point2f>& corners,
                                    const std::vector<cv::Point3f>& tagpoints)
 {
     m_imagePoints.push_back(corners);
@@ -238,30 +238,27 @@ CameraCalibration::drawResults(std::vector<cv::Mat>& images) const
         // 在图像中画出检测点和重投影点，并计算最大的重投影误差和平均的重投影误差
 
         ////////////////////////////////////////////////////////////////////////
+        // cv::Mat rvec(3, 1, CV_64F);
+        // rvec.at<double>(0) = m_cameraPoses.at<double>(i, 0);
+        // rvec.at<double>(1) = m_cameraPoses.at<double>(i, 1);
+        // rvec.at<double>(2) = m_cameraPoses.at<double>(i, 2);
+        // cv::Mat tvec(3, 1, CV_64F);
+        // tvec.at<double>(0) = m_cameraPoses.at<double>(i, 3);
+        // tvec.at<double>(1) = m_cameraPoses.at<double>(i, 4);
+        // tvec.at<double>(2) = m_cameraPoses.at<double>(i, 5);
+        // std::vector<cv::Point2f> estImagePoints;
+        // m_camera->projectPoints(m_scenePoints.at(i), rvec, tvec, estImagePoints);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        std::vector<cv::Point2f> estImagePoints;
+        m_camera->projectPoints(m_scenePoints.at(i), cameraPoses().rowRange(i, i+1).colRange(0, 3), 
+                                cameraPoses().rowRange(i, i+1).colRange(3, 6), estImagePoints);
+        for (size_t j = 0; j < estImagePoints.size(); ++j){
+            cv::circle(image, estImagePoints.at(j), 5, green, 2, CV_AA);
+            cv::circle(image, m_imagePoints.at(i).at(j), 5, red, 2, CV_AA);
+            float error = cv::norm(estImagePoints.at(j) - m_imagePoints.at(i).at(j));
+            errorSum += error;
+            errorMax = fmax(errorMax, error);
+        }
 
 
         /////////////////////////////////////////////////////////////

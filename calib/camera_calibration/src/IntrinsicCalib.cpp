@@ -41,7 +41,7 @@ int main(int argc, char** argv)
         ("verbose,v", boost::program_options::bool_switch(&verbose)->default_value(true), "Verbose output")
         ("apriltag-size", boost::program_options::value<float>(&apriltag_size)->default_value(0.088), "Size of apriltag in mm")
         ("apriltag-interval", boost::program_options::value<float>(&apriltag_interval)->default_value(0.3), "Interval of apriltag")
-        ("apriltag,a", boost::program_options::bool_switch(&use_apriltag)->default_value(true), "use apriltag as target")
+        ("apriltag,a", boost::program_options::bool_switch(&use_apriltag)->default_value(false), "use apriltag as target")
         ;
 
     boost::program_options::positional_options_description pdesc;
@@ -115,29 +115,26 @@ int main(int argc, char** argv)
         // 补全apriltag检测的代码，为标定提供 2D点和 3D点
 
         /////////////////////////////////////////////////////////////////
+        for (size_t i = 0; i < imageFilenames.size(); i++){
+            image = cv::imread(imageFilenames.at(i), 0);
 
+            Eigen::MatrixXd outputPoints;
+            std::vector<bool> outCornerObserved;
+            aprilgrid.computeObservation(image, outputPoints, outCornerObserved);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            std::vector<cv::Point2f> corners;
+            std::vector<cv::Point3f> tagpoints;
+            for (int j = 0; j < outCornerObserved.size(); j++){
+                if (outCornerObserved.at(j)){
+                    corners.push_back(cv::Point2f(outputPoints(j, 0), outputPoints(j, 1)));
+                    tagpoints.push_back(cv::Point3f(aprilgrid.point(j)[0], aprilgrid.point(j)[1], 0.0f));
+                }
+            }
+            if (corners.size() > 16){
+                calibration.addApriltagData(corners, tagpoints);
+                apriltagFound[i] = true;
+            }
+        }
 
         //////////////////////////////////////////////////////////////
 
@@ -150,7 +147,6 @@ int main(int argc, char** argv)
             image = cv::imread(imageFilenames.at(i), -1);
 
             Chessboard chessboard(boardSize, image);
-
             chessboard.findCorners();
             if (chessboard.cornersFound())
             {
@@ -164,8 +160,9 @@ int main(int argc, char** argv)
                 cv::Mat sketch;
                 chessboard.getSketch().copyTo(sketch);
 
-                cv::imshow("Image", sketch);
-                cv::waitKey(50);
+                // cv::imshow("Image", sketch);
+                // cv::waitKey(50);
+                
             }
             else if (verbose)
             {
@@ -173,7 +170,9 @@ int main(int argc, char** argv)
             }
             chessboardFound.at(i) = chessboard.cornersFound();
         }
-        cv::destroyWindow("Image");
+        
+        // cv::destroyWindow("Image");
+        
 
     }
     
@@ -217,7 +216,7 @@ int main(int argc, char** argv)
         for (size_t i = 0; i < cbImages.size(); ++i)
         {
             cv::imshow("Image", cbImages.at(i));
-            cv::waitKey(0);
+            cv::waitKey();
         }
     }
 

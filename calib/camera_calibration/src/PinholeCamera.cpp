@@ -1,5 +1,6 @@
 #include "PinholeCamera.h"
 
+#include <iostream>
 #include <cmath>
 #include <cstdio>
 #include <eigen3/Eigen/Dense>
