@@ -33,6 +33,10 @@ struct HandEyeCostFunction {
         
         // error += error_mat.matrix().cwiseAbs().sum();
         // 用四元数比矩阵更加紧凑
+        // T1 a = a'
+        // T2 b = b'
+        // T2 T12 a = b' = T12 a' = T12 T1 a
+        // T2 T12 = T12 T1
 
         Eigen::Matrix<T, 3, 3> rotation_matrix = error_mat.linear(); 
         Eigen::Quaternion<T> rotation_quaternion(rotation_matrix); 

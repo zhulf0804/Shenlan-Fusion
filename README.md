@@ -29,3 +29,30 @@ make
 ![](./figures/1-1-intrinsic-calib-2.png)
 
 
+#### 2. Pose alignment
+
+根据两条轨迹求外参
+
+**代码运行**
+```
+cd calib/pose_align
+
+mkdir build 
+cd build
+cmake ..
+make
+
+./pose_align ../data/slam_poses.txt
+```
+
+**Alignment 结果**
+![](./figures/1-2-pose_align-1.png)
+
+**可视化**
+
+```
+cd scripts
+python3 draw_trajectory.py
+```
+![](./figures/1-2-pose_align-2.png)
+
