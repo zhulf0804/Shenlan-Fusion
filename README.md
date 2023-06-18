@@ -56,3 +56,24 @@ python3 draw_trajectory.py
 ```
 ![](./figures/1-2-pose_align-2.png)
 
+#### 3.LiDAR-LiDAR外参标定
+
+**代码运行**
+```
+cd calib/lidar2lidar
+
+mkdir build 
+cd build
+cmake ..
+make
+
+./lidar2lidar ../data/1_xyz.pcd ../data/2_xyz.pcd
+```
+
+**ICP结果**
+![](./figures/1-3-icp-1.png)
+
+
+**GICP结果**
+![](./figures/1-3-gicp-1.png)
+

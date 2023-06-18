@@ -47,8 +47,8 @@ void lidar2lidarCalibration(const std::string& path1, const std::string& path2)
 
   // TODO: change to gicp icp match
 
-  pcl_icp_match(source_pts, target_pts, tran_mat_icp);
-  // gicp_icp_match(source_pts, target_pts, tran_mat_icp);
+  // pcl_icp_match(source_pts, target_pts, tran_mat_icp);
+  gicp_icp_match(source_pts, target_pts, tran_mat_icp);
 
   std::cout<<"the calibration result is "<<std::endl<<tran_mat_icp<<std::endl;
 
