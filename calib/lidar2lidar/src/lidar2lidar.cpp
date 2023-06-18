@@ -58,10 +58,12 @@ void lidar2lidarCalibration(const std::string& path1, const std::string& path2)
   pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer("trans_viewer"));
   viewer->setBackgroundColor(0, 0, 0);
 
-  pcl::visualization::PointCloudColorHandlerCustom<PointT> source_color_handle(target_pts, 255, 0, 0);
+  pcl::visualization::PointCloudColorHandlerCustom<PointT> origin_color_handle(source_pts, 0, 0, 255);
+  pcl::visualization::PointCloudColorHandlerCustom<PointT> pred_color_handle(target_pts, 255, 0, 0);
   pcl::visualization::PointCloudColorHandlerCustom<PointT> target_color_handle(transed_cloud, 0, 255, 0);
 
-  viewer->addPointCloud(target_pts, source_color_handle, "source");
+  viewer->addPointCloud(source_pts, origin_color_handle, "origin");
+  viewer->addPointCloud(target_pts, pred_color_handle, "pred");
   viewer->addPointCloud(transed_cloud, target_color_handle, "target");
 
   viewer->spin();

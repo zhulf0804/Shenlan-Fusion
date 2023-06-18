@@ -71,9 +71,14 @@ make
 ```
 
 **ICP结果**
-![](./figures/1-3-icp-1.png)
+![](./figures/1-3-icp.png)
 
 
 **GICP结果**
-![](./figures/1-3-gicp-1.png)
+![](./figures/1-3-gicp.png)
 
+**可视化**
+
+source: 蓝, target: 红色, 预测: 绿色
+
+![](./figures/1-3-vis.png)
