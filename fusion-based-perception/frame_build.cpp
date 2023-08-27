@@ -13,8 +13,9 @@ namespace proto_input
             abort();
         }
         for (auto const& dir_entry : boost::filesystem::directory_iterator{ data_dir })
-            if (!boost::filesystem::is_directory(dir_entry.path()))
+            if (!boost::filesystem::is_directory(dir_entry.path())){
                 data_seq.emplace_back(std::stod(dir_entry.path().stem().string()), tag, dir_entry.path().string());
+            }
         return data_seq;
     }
 
@@ -42,11 +43,13 @@ namespace proto_input
         //size_t frame_num = std::min_element(data.begin(), data.end(), [](auto& l, auto& r) { return l.size() < r.size(); })->size();
         std::list<std::tuple<double, FileTag, std::string> > merge_list = std::move(data.front());
         merge_list.sort(comp);
+        
         for (size_t i = 1; i < data.size(); i++)
         {
             data[i].sort(comp);
             merge_list.merge(std::move(data[i]), comp);
         }
+        
         return frameTimeMatch(std::move(merge_list), data.size());
     }
 

@@ -17,7 +17,7 @@ inline void printMregeRes(const std::vector<std::tuple<double, proto_input::File
 
 int main(int argc, char** argv)
 {
-    //argv[1] config, argv[2] location, argv[3] camera, argv[4] lidar, argv[5] ground truth
+    //argv[1] config, argv[2] location, argv[3] camera, argv[4] lidar
     ros::init(argc, argv, "fusion_node");
     if (argc != 5)
     {
@@ -30,12 +30,12 @@ int main(int argc, char** argv)
     //Next, earse the element so that the each four adjacent elements have different FileTag and sort the four adjacent elements by FileTag.
     std::vector<std::tuple<double, proto_input::FileTag, std::string> >&& data_frame_seq = proto_input::mergeInputSequence({
         proto_input::buildSensorInputSequence(argv[2], "Location", proto_input::FileTag::LOCATION),
-        proto_input::buildSensorInputSequence(argv[3], "Lidar", proto_input::FileTag::CAMERA),
+        proto_input::buildSensorInputSequence(argv[3], "Camera", proto_input::FileTag::CAMERA),
         proto_input::buildSensorInputSequence(argv[4], "Lidar", proto_input::FileTag::LIDAR),
         //proto_input::buildSensorInputSequence(argv[5], "Radar", FileTag::RADAR),
     });
     //uncomment follow line to check input Sequence
-    //printMregeRes(data_frame_seq);
+    // printMregeRes(data_frame_seq);
 
     ros::NodeHandle nh;
     ros::Publisher lidar_pub = nh.advertise<sensor_msgs::PointCloud>("lidar_det", 50);
@@ -56,6 +56,10 @@ int main(int argc, char** argv)
         itp.parse(pose.header);
         itp.lex.matchID("pose");
         itp.parse(pose.pose);
+        // std::cout << std::get<2>(*it) << std::endl;
+        // std::cout << "header: " << pose.header.timestamp_sec << std::endl;
+        // std::cout << "position: " << pose.pose.position.x << ", " << pose.pose.position.y << ", " << pose.pose.position.z << std::endl;
+        // std::cout << "orientation: " << pose.pose.orientation.qx << ", " << pose.pose.orientation.qy << ", " << pose.pose.orientation.qz << ", " << pose.pose.orientation.qw << std::endl;
         ++it;
 
         std::shared_ptr<kit::perception::fusion::Frame> frame = std::make_shared<kit::perception::fusion::Frame>();
@@ -65,10 +69,12 @@ int main(int argc, char** argv)
             proto_input::CameraObject raw_co;
             kit::perception::fusion::CameraObjectListPtr co_list = std::make_shared<kit::perception::fusion::CameraObjectList>();
             itp.loadFile(std::get<2>(*it));
+            // std::cout << std::get<2>(*it) << std::endl;
             while (itp.lex.getToken() == ezcfg::Token::ID && itp.lex.getTokenText() == "perception_obstacle")
             {
                 itp.lex.next();
                 itp.parse(raw_co);
+                // std::cout << raw_co.id << ": " << raw_co.bbox2d.xmin << ", " << raw_co.bbox2d.ymin << ", " << raw_co.bbox2d.xmax << ", " << raw_co.bbox2d.ymax << std::endl;
                 co_list->objs.push_back(makeCameraObjectPtr(raw_co, std::get<0>(*it)));
             }
             co_list->time_ns = std::get<0>(*it);
@@ -81,13 +87,18 @@ int main(int argc, char** argv)
             proto_input::LidarObject raw_lo;
             kit::perception::fusion::LiDARObjectListPtr lo_list = std::make_shared<kit::perception::fusion::LiDARObjectList>();
             itp.loadFile(std::get<2>(*it));
+            std::cout << std::get<2>(*it) << std::endl;
             while (itp.lex.getToken() == ezcfg::Token::ID && itp.lex.getTokenText() == "perception_obstacle")
             {
                 itp.lex.next();
                 itp.parse(raw_lo);
+                // std::cout << raw_lo.id << ": (x, y, z): " << raw_lo.anchor_point.x << ", " << raw_lo.anchor_point.y << ", " << raw_lo.anchor_point.z 
+                // << ", (length, width, height): "<< raw_lo.length << ", " << raw_lo.width << ", " << raw_lo.height << ", velocity: " << raw_lo.velocity.x 
+                // << ", " << raw_lo.velocity.y << ", " << raw_lo.velocity.z << std::endl;
                 raw_lo.anchor_point.x = raw_lo.anchor_point.x - pose.pose.position.x;
                 raw_lo.anchor_point.y = raw_lo.anchor_point.y - pose.pose.position.y;
                 raw_lo.anchor_point.z = raw_lo.anchor_point.z - pose.pose.position.z;
+                // std::cout << "raw.anchor_point: " << raw_lo.anchor_point.x << ", " << raw_lo.anchor_point.y << ", " << raw_lo.anchor_point.z << std::endl;
                 lo_list->objs.push_back(makeLiDARObjectPtr(raw_lo, std::get<0>(*it)));
             }
             lidar_pub.publish(transToPointCloud(*lo_list));
