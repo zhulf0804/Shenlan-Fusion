@@ -22,7 +22,9 @@ bool FusionWrapper::Update(const FramePtr &frame) {
     if (frame->lidar_objs->objs.size() > 0) {
         std::cout << "updating with lidar objects..." << std::endl;
         tracker_->GetGlobalObjects(global_obj_list);
-        if (!predictor_->Predict(global_obj_list, frame->lidar_objs->time_ns)) {
+
+        // Predicting is just for matching, the predicting results will not affect tracker
+        if (!predictor_->Predict(global_obj_list, frame->lidar_objs->time_ns, frame->ego_pose)) {
             std::cout << "predict error for lidar measurement." << std::endl;
             return false; 
         }
@@ -33,7 +35,7 @@ bool FusionWrapper::Update(const FramePtr &frame) {
             return false;
         }
         // update global object with lidar measurements
-        tracker_->Update(frame->lidar_objs, local_global_map);
+        tracker_->Update(frame->lidar_objs, local_global_map, frame->ego_pose);
     }
 
     // TODO: radar will be available soon
@@ -52,7 +54,7 @@ bool FusionWrapper::Update(const FramePtr &frame) {
     if (frame->camera_objs->objs.size() > 0) {
         std::cout << "updating with camera objects..." << std::endl;
         tracker_->GetGlobalObjects(global_obj_list);
-        if (!predictor_->Predict(global_obj_list, frame->camera_objs->time_ns)) {
+        if (!predictor_->Predict(global_obj_list, frame->camera_objs->time_ns, frame->ego_pose)) {
             std::cout << "predict error for camera measurement." << std::endl;
             return false; 
         }

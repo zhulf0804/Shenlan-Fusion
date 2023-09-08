@@ -155,7 +155,7 @@ bool Matcher::Match(const LiDARObjectListPtr& lidar_obj_list,
         lidar_global_map[i] = -1;
     }
     if (global_obj_list->objs.size() == 0) {
-        return true;;
+        return true;
     }
 
     // compose bipartite weight matrix
@@ -216,7 +216,8 @@ float Matcher::IoUCamToFusion(
         tgt.width = fusion_obj->width;
         tgt.height = fusion_obj->height;
         tgt.length = fusion_obj->length;
-
+        // 按照深蓝原来的逻辑，这里是忽略了自车的旋转和障碍物的旋转，在这种情况下将3d bbox映射到2d框，可能会与真实的2d框有出入
+        // 因此，在前面实现时考虑了自车的旋转；但仍旧没有考虑障碍物的旋转。
         dist = IoUIn2D(pred, tgt, extrinsic_camera_to_baselink_.inverse(), cam_intrinsic_);
     } else if (main_sensor_ == SensorType::CAMERA) {
         BBox2D pred;

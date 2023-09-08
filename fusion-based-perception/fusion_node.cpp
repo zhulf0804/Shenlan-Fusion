@@ -3,6 +3,7 @@
 #include <list>
 #include <iostream>
 #include "input_data_type.h"
+#include "fusion/utils.h"
 #include <interpreter.hpp>
 #include <boost/filesystem.hpp>
 #include "fusion/fusion_wrapper.h"
@@ -63,6 +64,10 @@ int main(int argc, char** argv)
         ++it;
 
         std::shared_ptr<kit::perception::fusion::Frame> frame = std::make_shared<kit::perception::fusion::Frame>();
+
+        // get ego pose for location transformation
+        frame->ego_pose = pose.pose;
+
         //get camera detection results
         if (std::get<1>(*it) == proto_input::FileTag::CAMERA)
         {
@@ -98,6 +103,23 @@ int main(int argc, char** argv)
                 raw_lo.anchor_point.x = raw_lo.anchor_point.x - pose.pose.position.x;
                 raw_lo.anchor_point.y = raw_lo.anchor_point.y - pose.pose.position.y;
                 raw_lo.anchor_point.z = raw_lo.anchor_point.z - pose.pose.position.z;
+
+                // start: transform to baselink coordinates with consideration orientation of ego vehicle
+                std::cout << "before rotate (x, y, z): " << raw_lo.anchor_point.x << ", " << raw_lo.anchor_point.y << ", " << raw_lo.anchor_point.z << std::endl;
+                Eigen::Matrix3d R = kit::perception::fusion::getRotMat(pose.pose);
+                Eigen::Vector3d pos(raw_lo.anchor_point.x, raw_lo.anchor_point.y, raw_lo.anchor_point.z);
+                Eigen::Vector3d pos_rotated = R.inverse() * pos;
+                raw_lo.anchor_point.x = pos_rotated[0];
+                raw_lo.anchor_point.y = pos_rotated[1];
+                raw_lo.anchor_point.z = pos_rotated[2];
+                Eigen::Vector3d vel(raw_lo.velocity.x, raw_lo.velocity.y, raw_lo.velocity.z);
+                Eigen::Vector3d vel_rotated = R.inverse() * vel;
+                raw_lo.velocity.x = vel_rotated[0];
+                raw_lo.velocity.y = vel_rotated[1];
+                raw_lo.velocity.z = vel_rotated[2];
+                std::cout << "after rotate (x, y, z): " << raw_lo.anchor_point.x << ", " << raw_lo.anchor_point.y << ", " << raw_lo.anchor_point.z << std::endl;
+                // end: transform to baseline coordinates
+
                 // std::cout << "raw.anchor_point: " << raw_lo.anchor_point.x << ", " << raw_lo.anchor_point.y << ", " << raw_lo.anchor_point.z << std::endl;
                 lo_list->objs.push_back(makeLiDARObjectPtr(raw_lo, std::get<0>(*it)));
             }

@@ -11,7 +11,7 @@ namespace perception {
 namespace fusion {
 
 bool Tracker::Update(const LiDARObjectListPtr &lidar_obj_list,
-        const std::map<size_t, int>& map) {
+        const std::map<size_t, int>& map, proto_input::Pose &ego_pose) {
     for (auto m : map) {
         if (m.second >= 0) {
             Measurement lidar_mea;
@@ -38,6 +38,7 @@ bool Tracker::Update(const LiDARObjectListPtr &lidar_obj_list,
             state.meas = meas;
             // update fusion_obj with lidar_measurement using KalmanFilter
             motion_filters_[m.second]->UpdateMotion(state, lidar_mea);
+            global_obj->time_ns = lidar_obj->time_ns;
             global_obj->x = motion_filters_[m.second]->GetState()[0];
             global_obj->y = motion_filters_[m.second]->GetState()[1];
             global_obj->z = lidar_obj->z;
@@ -55,9 +56,11 @@ bool Tracker::Update(const LiDARObjectListPtr &lidar_obj_list,
             FusionObjectPtr new_obj =
                 std::make_shared<FusionObject>(FusionObject());
             const auto &lidar_obj = lidar_obj_list->objs[m.first];
+            // update time here
             new_obj->time_ns = lidar_obj->time_ns;
             // TODO: we should maintain a global unique id for new object
-            new_obj->id = lidar_obj->id;
+            // new_obj->id = lidar_obj->id;
+            new_obj->id = trackor_id++;
             new_obj->x = lidar_obj->x;
             new_obj->y = lidar_obj->y; new_obj->z = lidar_obj->z;
             new_obj->length = lidar_obj->length;
@@ -77,6 +80,7 @@ bool Tracker::Update(const LiDARObjectListPtr &lidar_obj_list,
         }
         global_obj_list_->time_ns = lidar_obj_list->time_ns;
     }
+    global_obj_list_->pose = ego_pose;
 
     return true;
 }
@@ -130,6 +134,7 @@ bool Tracker::Update(const CameraObjectListPtr &camera_obj_list,
             auto& global_obj = global_obj_list_->objs[m.second];
             State state;
             state.time_ns = global_obj->time_ns;
+            std::cout << "global_obj->time_ns: " << std::fixed << std::setprecision(4) << global_obj->time_ns << std::endl;
             meas << global_obj->ux, global_obj->vy, global_obj->width_2d, global_obj->height_2d, float(global_obj->label); 
             state.meas = meas;
             std::cout << "global obj: " << global_obj->ToString() << std::endl;
@@ -206,11 +211,36 @@ void Tracker::GetGlobalObjects(const FusionObjectListPtr& res) {
     {
         std::lock_guard<std::mutex> guard(global_mutex_);
         res->time_ns = global_obj_list_->time_ns;
+        res->pose = global_obj_list_->pose;
         for (size_t i = 0; i < global_obj_list_->objs.size(); ++i) {
             FusionObjectPtr new_obj =
                 std::make_shared<FusionObject>(FusionObject());
             *new_obj = *global_obj_list_->objs[i];
             res->objs.push_back(new_obj);
+            
+            /*
+            // Test code
+            std::cout << "before: " << std::endl;
+            std::cout << "global_obj_list_: " << global_obj_list_->objs[i]->x << std::endl;
+            std::cout << "new_obj: " << new_obj->x << std::endl;
+            std::cout << "res->objs: " << res->objs[i]->x << std::endl;
+
+            res->objs[i]->x = 100;
+            std::cout << "after: " << std::endl;
+            std::cout << "global_obj_list_: " << global_obj_list_->objs[i]->x << std::endl;
+            std::cout << "new_obj: " << new_obj->x << std::endl;
+            std::cout << "res->objs: " << res->objs[i]->x << std::endl;
+
+            // Test result
+            before:                                                                                                                                                                                                     
+            global_obj_list_: -10.7741                                                                                                                                                                                  
+            new_obj: -10.7741                                                                                                                                                                                           
+            res->objs: -10.7741                                                                                                                                                                                         
+            after:                                                                                                                                                                                                      
+            global_obj_list_: -10.7741                                                                                                                                                                                  
+            new_obj: 100                                                                                                                                                                                                
+            res->objs: 100
+            */
         }
     }
 }
@@ -220,6 +250,7 @@ void Tracker::GetFusionResults(const FusionObjectListPtr& res) {
         std::lock_guard<std::mutex> guard(global_mutex_);
         PerodicallyUpdateLifeDuration();
         res->time_ns = global_obj_list_->time_ns;
+        res->pose = global_obj_list_->pose;
         for (size_t i = 0; i < global_obj_list_->objs.size(); ++i) {
             FusionObjectPtr new_obj =
                 std::make_shared<FusionObject>(FusionObject());

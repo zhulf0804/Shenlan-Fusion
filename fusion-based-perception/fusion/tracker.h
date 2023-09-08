@@ -22,7 +22,7 @@ class Tracker {
     bool Update(const FusionObjectListPtr &local_obj_list);
 
     bool Update(const LiDARObjectListPtr &lidar_obj_list,
-            const std::map<size_t, int>& map);
+            const std::map<size_t, int>& map, proto_input::Pose &ego_pose);
     bool Update(const CameraObjectListPtr &camera_obj_list,
             const std::map<size_t, int>& map);
     bool Update(const RadarObjectListPtr &radar_obj_list,
@@ -41,6 +41,7 @@ class Tracker {
     int startup_duration_ = 6;
     float dist_thres_ = 1.0;
     float iou_thres_ = 0.5;
+    int trackor_id = 0;
     FusionObjectListPtr global_obj_list_;
 };
 

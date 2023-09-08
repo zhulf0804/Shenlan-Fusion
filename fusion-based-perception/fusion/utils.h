@@ -42,6 +42,8 @@ float IoUIn2D(const BBox2D &pred, const BBox2D &tgt);
 float IoUIn3D(const LiDARObjectPtr& local, const FusionObjectPtr& global);
 float IoUIn3D(const BBox3D &pred, const BBox3D& tgt);
 
+Eigen::Matrix3d getRotMat(proto_input::Pose &pose);
+
 }  // namespace fusion
 }  // namespace perception
 }  // namespace kit

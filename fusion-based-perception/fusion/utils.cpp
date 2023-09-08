@@ -200,6 +200,12 @@ float IoUIn3D(const BBox3D &pred, const BBox3D& tgt) {
     return iou(pred_q, tgt_q);
 }
 
+Eigen::Matrix3d getRotMat(proto_input::Pose &pose){
+    Eigen::Quaterniond q(pose.orientation.qw, pose.orientation.qx, pose.orientation.qy, pose.orientation.qz);
+    Eigen::Matrix3d R = q.toRotationMatrix();
+    return R;
+}
+
 }  // namespace fusion
 }  // namespace perception
 }  // namespace kit

@@ -30,6 +30,8 @@ namespace proto_input
     {
         Point3D position;
         Quaternion orientation;
+        Point3D linear_velocity;
+        Point3D linear_acceleration;
     };
 
     struct Location

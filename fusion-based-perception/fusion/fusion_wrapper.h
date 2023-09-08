@@ -3,6 +3,7 @@
 #pragma once
 
 #include "yaml-cpp/yaml.h"
+#include "input_data_type.h"
 #include "object.h"
 #include "matcher.h"
 #include "tracker.h"

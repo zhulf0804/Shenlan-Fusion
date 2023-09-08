@@ -139,7 +139,7 @@ void FusionEKF::UpdateMotion(const State &state, const Measurement &measurement)
 
     } else if (measurement.sensor_type == SensorType::LIDAR) {
         // TODO: Initialize state.
-        
+         motion_filter_.x_ << state.meas(0), state.meas(1), state.meas(2), state.meas(3), state.meas(4);
     }
 
     /*****************************************************************************
@@ -163,9 +163,20 @@ void FusionEKF::UpdateMotion(const State &state, const Measurement &measurement)
     float dt_4 = dt_3 * dt;
 
     // TODO: Modify the F matrix so that the time is integrated
-
+    motion_filter_.F_ = MatrixXd(5, 5);
+    motion_filter_.F_ << 1, 0, dt, 0, 0,
+        0, 1, 0, dt, 0, 
+        0, 0, 1, 0, 0,
+        0, 0, 0, 1, 0,
+        0, 0, 0, 0, 1;
 
     // TODO: set the process covariance matrix Q
+    motion_filter_.Q_ = MatrixXd(5, 5);
+    motion_filter_.Q_ << dt_4/4*noise_ax, 0, dt_3/2*noise_ax, 0, 0,
+        0, dt_4/4*noise_ay, 0, dt_3/2*noise_ay, 0,
+        dt_3/2*noise_ax, 0, dt_2*noise_ax, 0, 0,
+        0, dt_3/2*noise_ay, 0, dt_2*noise_ay, 0,
+        0, 0, 0, 0, 1;   // is this right ?
 
 
     motion_filter_.Predict();
@@ -179,6 +190,14 @@ void FusionEKF::UpdateMotion(const State &state, const Measurement &measurement)
      * Use the sensor type to perform the update step.
      * Update the state and covariance matrices.
      */
+
+    if (measurement.sensor_type == SensorType::RADAR) {
+
+    } else if (measurement.sensor_type == SensorType::LIDAR) {
+        motion_filter_.H_ = H_laser_;
+        motion_filter_.R_ = R_laser_;
+        motion_filter_.Update(measurement.meas);
+    }
 
 }
 

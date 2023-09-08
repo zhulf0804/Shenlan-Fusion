@@ -7,6 +7,7 @@
 #include <sstream>
 #include <Eigen/Eigen>
 #include <iostream>
+#include "input_data_type.h"
 
 namespace kit {
 namespace perception {
@@ -202,6 +203,7 @@ using FusionObjectConstPtr = std::shared_ptr<const FusionObject>;
 struct FusionObjectList {
     double time_ns = 0.0f;
     std::string frame_id = "";
+    proto_input::Pose pose;
     std::vector<FusionObjectPtr> objs;
 
     void Reset() {
@@ -215,6 +217,7 @@ using FusionObjectListConstPtr = std::shared_ptr<const FusionObjectList>;
 
 struct Frame {
     double time_ns = 0.0f;
+    proto_input::Pose ego_pose;
 
     LiDARObjectListPtr lidar_objs;
     CameraObjectListPtr camera_objs;
