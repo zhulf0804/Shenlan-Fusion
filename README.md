@@ -88,7 +88,7 @@ source: 蓝, target: 红色, 预测: 绿色
 ![](./figures/1-3-vis.png)
 
 
-## 第二次作业 - xxx
+## 第二次作业 - LiDAR和Camera后融合
 
 #### 要求
 1. 实现fusion_ekf里的updateMotion
@@ -109,13 +109,17 @@ source: 蓝, target: 红色, 预测: 绿色
 #### 运行
 
 ```
-mkdir catkin_ws
-cd catkin_ws/
+mkdir catkin_ws && cd catkin_ws/
 mkdir src
 mv ../fusion-based-perception/ src/
 
 catkin_make
 source devel/setup.bash
+
+## 窗口1启动rviz
+roslaunch kit_perception  rviz.launch
+## 窗口2启动融合程序
+roslaunch kit_perception mutil_obj_fusion.launch
 ```
 
 或
@@ -134,7 +138,10 @@ rviz -d ../config/rviz.rviz
 
 #### 结果
 
+单object 1个类别，多类别共28个类别。下面可视化的是多类别的结果。
+
 - 不考虑自车朝向
+![](./figures/2-1.png)
 
 - 考虑自车朝向
 ![](./figures/2-2.png)
